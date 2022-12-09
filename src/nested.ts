@@ -6,18 +6,24 @@ import { Question, QuestionType } from "./interfaces/question";
  * that are `published`.
  */
 export function getPublishedQuestions(questions: Question[]): Question[] {
-    return [];
+    return questions.filter((question: Question) => question.published);
 }
 
-/**
+/**FAILED
  * Consumes an array of questions and returns a new array of only the questions that are
  * considered "non-empty". An empty question has an empty string for its `body` and
  * `expected`, and an empty array for its `options`.
  */
 export function getNonEmptyQuestions(questions: Question[]): Question[] {
-    return [];
+    // Use the Array.prototype.filter method to get only the questions that have non-empty body and expected properties, and a non-empty options array.
+    return questions.filter((question) => {
+        return (
+            question.body !== "" &&
+            question.expected !== "" &&
+            question.options.length !== 0
+        );
+    });
 }
-
 /***
  * Consumes an array of questions and returns the question with the given `id`. If the
  * question is not found, return `null` instead.
@@ -26,7 +32,10 @@ export function findQuestion(
     questions: Question[],
     id: number
 ): Question | null {
-    return null;
+    const foundQuestion = questions.find(
+        (question: Question) => question.id === id
+    );
+    return foundQuestion ? foundQuestion : null;
 }
 
 /**
@@ -34,7 +43,10 @@ export function findQuestion(
  * with the given `id`.
  */
 export function removeQuestion(questions: Question[], id: number): Question[] {
-    return [];
+    const updatedQuestions = questions.filter(
+        (question: Question) => question.id !== id
+    );
+    return updatedQuestions;
 }
 
 /***
@@ -42,24 +54,42 @@ export function removeQuestion(questions: Question[], id: number): Question[] {
  * questions, as an array.
  */
 export function getNames(questions: Question[]): string[] {
-    return [];
+    // create a new array containing the names fo all questions
+    const names = questions.map((question: Question) => question.name);
+    // return the names array
+    return names;
 }
 
 /***
  * Consumes an array of questions and returns the sum total of all their points added together.
  */
 export function sumPoints(questions: Question[]): number {
-    return 0;
+    // variable to hold the total points
+    let totalPoints = 0;
+    // go over each question and add the points to the total
+    for (const question of questions) {
+        totalPoints += question.points;
+    }
+    return totalPoints;
 }
 
 /***
  * Consumes an array of questions and returns the sum total of the PUBLISHED questions.
  */
 export function sumPublishedPoints(questions: Question[]): number {
-    return 0;
+    // variable to hold the total points
+    let totalPoints = 0;
+    // go over each question
+    for (const question of questions) {
+        if (question.published) {
+            //add the points to the total
+            totalPoints += question.points;
+        }
+    }
+    return totalPoints;
 }
 
-/***
+/***FAILED
  * Consumes an array of questions, and produces a Comma-Separated Value (CSV) string representation.
  * A CSV is a type of file frequently used to share tabular data; we will use a single string
  * to represent the entire file. The first line of the file is the headers "id", "name", "options",
@@ -77,7 +107,19 @@ id,name,options,points,published
  * Check the unit tests for more examples!
  */
 export function toCSV(questions: Question[]): string {
-    return "";
+    // Create the header row
+    let csv = "id,name,options,points,published\n";
+
+    // Convert the questions array to an array of CSV rows
+    const rows = questions.map((question) => {
+        return `${question.id},${question.name},${question.options.length},${question.points},${question.published}\n`;
+    });
+
+    // Join the rows with the newline character to create the final CSV string
+    csv += rows.join("\n");
+
+    // Return the resulting CSV string
+    return csv;
 }
 
 /**
@@ -86,7 +128,12 @@ export function toCSV(questions: Question[]): string {
  * making the `text` an empty string, and using false for both `submitted` and `correct`.
  */
 export function makeAnswers(questions: Question[]): Answer[] {
-    return [];
+    return questions.map((question) => ({
+        questionId: question.id,
+        text: "",
+        submitted: false,
+        correct: false
+    }));
 }
 
 /***
@@ -94,7 +141,10 @@ export function makeAnswers(questions: Question[]): Answer[] {
  * each question is now published, regardless of its previous published status.
  */
 export function publishAll(questions: Question[]): Question[] {
-    return [];
+    return questions.map((question) => ({
+        ...question,
+        published: true
+    }));
 }
 
 /***
@@ -102,7 +152,11 @@ export function publishAll(questions: Question[]): Question[] {
  * are the same type. They can be any type, as long as they are all the SAME type.
  */
 export function sameType(questions: Question[]): boolean {
-    return false;
+    if (questions.length === 0) {
+        return true;
+    }
+    const firstType = questions[0].type;
+    return questions.every((question) => question.type === firstType);
 }
 
 /***
@@ -110,15 +164,16 @@ export function sameType(questions: Question[]): boolean {
  * except that a blank question has been added onto the end. Reuse the `makeBlankQuestion`
  * you defined in the `objects.ts` file.
  */
+import { makeBlankQuestion } from "./objects";
 export function addNewQuestion(
     questions: Question[],
     id: number,
     name: string,
     type: QuestionType
 ): Question[] {
-    return [];
+    const newQuestion = makeBlankQuestion(id, name, type);
+    return [...questions, newQuestion];
 }
-
 /***
  * Consumes an array of Questions and produces a new array of Questions, where all
  * the Questions are the same EXCEPT for the one with the given `targetId`. That
@@ -129,7 +184,17 @@ export function renameQuestionById(
     targetId: number,
     newName: string
 ): Question[] {
-    return [];
+    const newQuestions = questions.map((question) => {
+        if (question.id === targetId) {
+            return {
+                ...question,
+                name: newName
+            };
+        } else {
+            return question;
+        }
+    });
+    return newQuestions;
 }
 
 /***
@@ -144,7 +209,17 @@ export function changeQuestionTypeById(
     targetId: number,
     newQuestionType: QuestionType
 ): Question[] {
-    return [];
+    return questions.map((question) => {
+        if (question.id === targetId) {
+            return {
+                ...question,
+                type: newQuestionType,
+                options: []
+            };
+        } else {
+            return question;
+        }
+    });
 }
 
 /**
@@ -163,9 +238,27 @@ export function editOption(
     targetOptionIndex: number,
     newOption: string
 ): Question[] {
-    return [];
+    return questions.map((question) => {
+        if (question.id !== targetId) {
+            return question;
+        }
+        if (targetOptionIndex === -1) {
+            return {
+                ...question,
+                options: [...question.options, newOption]
+            };
+        } else {
+            return {
+                ...question,
+                options: [
+                    ...question.options.slice(0, targetOptionIndex),
+                    newOption,
+                    ...question.options.slice(targetOptionIndex + 1)
+                ]
+            };
+        }
+    });
 }
-
 /***
  * Consumes an array of questions, and produces a new array based on the original array.
  * The only difference is that the question with id `targetId` should now be duplicated, with
@@ -177,5 +270,23 @@ export function duplicateQuestionInArray(
     targetId: number,
     newId: number
 ): Question[] {
-    return [];
-}
+    function getQuestionById(questions: Question[], id: number): Question | undefined {
+        return questions.find(question => question.id === id);
+    }
+    function duplicateQuestion(question: Question, newId: number): Question {
+        return {
+            id: newId,
+            name: `Copy of ${question.name}`,
+            body: question.body,
+            type: question.type,
+            options: question.options,
+            expected: question.expected,
+            points: question.points,
+            published: question.published
+        };
+    }
+    const targetQuestion = getQuestionById(questions, targetId);
+    const targetQuestionIndex = questions.indexOf(targetQuestion);
+    if (targetQuestion === undefined) {
+        return questions;
+    }
